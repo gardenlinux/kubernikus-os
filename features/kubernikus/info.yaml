@@ -1,0 +1,9 @@
+description: "Converged Cloud platform (ignition, sssd, open-vm-tools)"
+type: element
+features:
+  include: 
+    - cloud
+    - _ignite
+    - sssd
+  exclude:
+    - firewall

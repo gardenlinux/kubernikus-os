@@ -1,0 +1,3 @@
+[submodule "gardenlinux"]
+	path = gardenlinux
+	url = https://github.com/gardenlinux/gardenlinux

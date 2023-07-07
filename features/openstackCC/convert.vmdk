@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -eufo pipefail
+
+# NOTE: vmdk as image format is required on the SAP CC EE
+qemu-img convert -o subformat=streamOptimized -o adapter_type=buslogic -f raw -O vmdk "$1" "$2"
