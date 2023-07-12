@@ -2,7 +2,7 @@ description: "VMware platform in CC"
 type: platform
 features:
   include: 
-    - kubernikus
+    - convergedcloud
 disk:
   boot: 
     - mbr
