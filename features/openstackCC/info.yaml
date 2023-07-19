@@ -2,7 +2,7 @@ description: "OpenStack platform in CC"
 type: platform
 features:
   include: 
-    - kubernikus
+    - convergedcloud
 convert:
   format: 
     - type: vmdk
