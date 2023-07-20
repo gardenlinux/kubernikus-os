@@ -1,0 +1,149 @@
+name: build
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        default: today
+      default_modifier:
+        type: string
+        default: ""
+    outputs:
+      version:
+        value: ${{ jobs.version.outputs.version }}
+jobs:
+  version:
+    name: resolve version
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: resolve version "${{ inputs.version }}"
+        id: version
+        run: echo version="$(bin/garden-version "${{ inputs.version }}")" | tee -a "$GITHUB_OUTPUT"
+  base:
+    name: bootstrap stage
+    needs: version
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: nkraetzschmar/workflow-telemetry-action@v1
+        with:
+          metric_frequency: 1
+          proc_trace_min_duration: 10
+          proc_trace_chart_max_count: 50
+          comment_on_pr: false
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: ./gardenlinux/.github/actions/setup
+      - name: set VERSION=${{ needs.version.outputs.version }}
+        run: |
+          bin/garden-version "${{ needs.version.outputs.version }}" | tee VERSION
+          GIT_DIR=gardenlinux/.git git update-index --assume-unchanged VERSION
+      - name: build base-amd64
+        run: ./build base-amd64
+      - uses: actions/cache/save@v3
+        with:
+          path: .build
+          key: base-${{ github.run_id }}
+  test_container:
+    name: container image for tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: nkraetzschmar/workflow-telemetry-action@v1
+        with:
+          metric_frequency: 1
+          proc_trace_min_duration: 10
+          proc_trace_chart_max_count: 50
+          comment_on_pr: false
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: ./gardenlinux/.github/actions/setup
+      - name: build test container
+        run: |
+          podman build --squash --tag test --build-arg base="$(./build --print-container-image)" tests
+          podman save --format oci-archive test > test.oci
+      - name: upload test container
+        uses: actions/cache/save@v3
+        with:
+          path: test.oci
+          key: test_container:${{ github.run_id }}
+  images:
+    needs: [ version, base, test_container ]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    permissions:
+      id-token: write
+    environment: ${{ inputs.use_kms && 'oidc_aws_kms_secureboot_signing' || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ amd64 ]
+        target: [ openstackCC, vmwareCC ]
+        modifier: [ "${{ inputs.default_modifier }}" ]
+    steps:
+      - uses: nkraetzschmar/workflow-telemetry-action@v1
+        with:
+          metric_frequency: 1
+          proc_trace_min_duration: 10
+          proc_trace_chart_max_count: 50
+          comment_on_pr: false
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: ./gardenlinux/.github/actions/setup
+      - name: set VERSION=${{ needs.version.outputs.version }}
+        run: |
+          bin/garden-version "${{ needs.version.outputs.version }}" | tee VERSION
+          GIT_DIR=gardenlinux/.git git update-index --assume-unchanged VERSION
+      - name: load bootstrap stage cache
+        uses: actions/cache/restore@v3
+        with:
+          path: .build
+          key: base-${{ github.run_id }}
+          fail-on-cache-miss: true
+      - name: download test container cache
+        uses: actions/cache/restore@v3
+        with:
+          path: test.oci
+          key: test_container:${{ github.run_id }}
+          fail-on-cache-miss: true
+      - name: import test container image
+        run: |
+          podman load < test.oci
+          rm test.oci
+      - name: update bootstrap stage build artifact timestamps
+        run: |
+          t="$(date '+%s')"
+          find .build -exec touch -d "@$t" {} +
+      - name: build
+        run: ./build ${{ inputs.use_kms && '--kms' || '' }} ${{ matrix.target }}${{ matrix.modifier }}-${{ matrix.arch }}
+      # - name: test
+      #   run: ./test --container-image test ${{ matrix.target }}${{ matrix.modifier }}-${{ matrix.arch }}
+      # - uses: pmeier/pytest-results-action@main
+      #   if: always()
+      #   with:
+      #     path: tests/test.xml
+      - name: get cname
+        run: echo "cname=$(basename "$(realpath ".build/${{ matrix.target }}${{ matrix.modifier }}-${{ matrix.arch }}")" .artifacts)" | tee -a "$GITHUB_ENV"
+      - name: pack build artifacts for upload
+        run: tar -cSzvf "${{ env.cname }}.tar.gz" -C .build -T ".build/${{ env.cname }}.artifacts"
+      - uses: actions/upload-artifact@v3
+        with:
+          name: "${{ env.cname }}"
+          path: "${{ env.cname }}.tar.gz"
