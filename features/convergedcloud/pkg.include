@@ -1,3 +1,4 @@
+apparmor
 open-vm-tools
 containerd
 docker.io

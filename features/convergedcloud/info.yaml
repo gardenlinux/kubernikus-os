@@ -7,3 +7,4 @@ features:
     - sssd
   exclude:
     - firewall
+    - _selinux
