@@ -4,10 +4,11 @@ Description=Ignition disable after first boot
 
 ConditionFirstBoot=true
 ConditionPathExists=/run/ignition.env
-RequiresMountsFor=/boot/efi
+RequiresMountsFor=/efi
 
 DefaultDependencies=no
 Before=sysinit.target
+After=systemd-tmpfiles-setup.service
 
 # TODO : do we really need to fail to boot?
 OnFailure=emergency.target
