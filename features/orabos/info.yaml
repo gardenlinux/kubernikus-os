@@ -1,0 +1,7 @@
+description: "ORA Baremetal OS"
+type: platform
+features:
+  include: 
+    - vhost
+    - khost
+    - _slim

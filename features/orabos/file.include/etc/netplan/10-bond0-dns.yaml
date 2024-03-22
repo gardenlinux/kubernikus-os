@@ -1,0 +1,8 @@
+network:
+  version: 2
+  bonds:
+    bond0:
+      nameservers:
+        addresses:
+        - 147.204.9.201
+        - 147.204.9.200
