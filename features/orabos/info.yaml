@@ -5,3 +5,4 @@ features:
     - vhost
     - khost
     - _slim
+  exclude: [ _selinux ]
