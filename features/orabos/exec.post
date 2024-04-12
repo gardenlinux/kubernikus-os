@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eufo pipefail
+
+rootfs="$1"
+
+rm -f $rootfs/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
