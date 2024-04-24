@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+mkdir -p /etc/apt/sources.list.d/
+# Tried it with "pkg.include" and placing this under "file.include", but that didn't work
+cat >/etc/apt/sources.list.d/debian.list <<-EOT
+deb http://deb.debian.org/debian stable main
+deb http://deb.debian.org/debian stable-backports main
+EOT
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
