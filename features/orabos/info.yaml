@@ -2,7 +2,7 @@ description: "ORA Baremetal OS"
 type: platform
 features:
   include: 
+    - chost
     - vhost
-    - khost
     - _slim
   exclude: [ _selinux ]
