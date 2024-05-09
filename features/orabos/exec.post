@@ -4,4 +4,6 @@ set -eufo pipefail
 
 rootfs="$1"
 
-rm -f $rootfs/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+# the containerd package (or some dependency) creates a link
+# The calico pod though wants to create there some folder and fails thanks to that
+rm -f $rootfs/opt/cni/bin
