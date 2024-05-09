@@ -62,6 +62,7 @@ def setup_memory():
   with open("/etc/kernel/cmdline.d/60-hugepages.cfg", "wt") as stream:
     stream.write(f'CMDLINE_LINUX="$CMDLINE_LINUX hugepages={nr_hugepages}"\n')
   subprocess.run("update-bootloaders", shell=True)
+  subprocess.run(f"sysctl -w vm.nr_hugepages={nr_hugepages}", shell=True)
 
 
 setup_ovs()
