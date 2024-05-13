@@ -1,5 +1,5 @@
 description: "ORA Baremetal OS"
-type: platform
+type: element
 features:
   include: 
     - chost
