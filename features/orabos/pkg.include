@@ -3,3 +3,4 @@ multipath-tools
 open-iscsi
 openvswitch-switch
 jq
+conntrack
