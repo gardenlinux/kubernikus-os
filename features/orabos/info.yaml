@@ -6,5 +6,5 @@ features:
     - vhost
     - _slim
     - _ignite
-    - sssd
+#    - sssd
   exclude: [ _selinux ]
