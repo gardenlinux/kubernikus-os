@@ -5,6 +5,5 @@ features:
     - chost
     - vhost
     - _slim
-    - _ignite
 #    - sssd
   exclude: [ _selinux ]
