@@ -17,9 +17,11 @@ def setup_ovs():
     with open(INPUT_PATH, "rt") as stream:
       data = load(stream, Loader=Loader)
   except FileNotFoundError:
-    with open(INPUT_PATH + ".old", "rt") as stream:
-      data = load(stream, Loader=Loader)
-
+    try:
+      with open(INPUT_PATH + ".old", "rt") as stream:
+        data = load(stream, Loader=Loader)
+    except FileNotFoundError:
+      return
 
   network = data["network"]
   bonds = network["bonds"]
