@@ -1,5 +1,0 @@
-description: "ORA Baremetal OS for Metal3"
-type: element
-features:
-  include: 
-    - orabos
