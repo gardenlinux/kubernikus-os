@@ -6,4 +6,6 @@ features:
     - vhost
     - _slim
 #    - sssd
-  exclude: [ _selinux ]
+  exclude:
+    - _selinux
+    - firewall
