@@ -26,21 +26,25 @@ def setup_ovs():
   network = data["network"]
   bonds = network["bonds"]
   bond0 = bonds["bond0"]
-  bond0_addresses = bond0.pop("addresses")
-  bond0_routes = bond0.pop("routes")
 
   network["openvswitch"] = {}
   bridges = network.setdefault("bridges", {})
-  bridges["br-ex"] = {
-    "addresses": bond0_addresses,
+  br_ex = {
     "interfaces": ["bond0"],
     "openvswitch": {},
-    "routes": bond0_routes,
-    "nameservers": {
-        "addresses": ["147.204.9.200", "147.204.9.201"]
-      }
+  }
+
+  for key in ["addresses", "routes", "dhcp4"]:
+    val = bond0.pop(key, None)
+    if val:
+      br_ex[key] = val
+
+  if not br_ex.get("dhcp4", None):
+    br_ex["nameservers"] = {
+      "addresses": ["147.204.9.200", "147.204.9.201"]
     }
 
+  bridges["br-ex"] = br_ex
 
   with open(OUTPUT_PATH, "wt") as stream:
     dump(data, stream, Dumper=Dumper)
