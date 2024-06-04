@@ -4,3 +4,4 @@ open-iscsi
 openvswitch-switch
 jq
 conntrack
+nfs-common
