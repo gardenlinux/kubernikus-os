@@ -25,18 +25,22 @@ def setup_ovs():
       return
 
   network = data["network"]
-  bonds = network["bonds"]
-  bond0 = bonds["bond0"]
+  interfaces = network.get("bonds") or network.get("ethernets")
+
+  if not interfaces:
+    return
+
+  primary_name, primary = next(iter(interfaces.items()))
 
   network["openvswitch"] = {}
   bridges = network.setdefault("bridges", {})
   br_ex = {
-    "interfaces": ["bond0"],
+    "interfaces": [primary_name],
     "openvswitch": {},
   }
 
   for key in ["addresses", "routes", "dhcp4"]:
-    val = bond0.pop(key, None)
+    val = primary.pop(key, None)
     if val:
       br_ex[key] = val
 
