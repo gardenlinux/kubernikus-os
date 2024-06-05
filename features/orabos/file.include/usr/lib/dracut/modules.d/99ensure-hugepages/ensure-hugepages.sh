@@ -28,4 +28,4 @@ kexec \
   --initrd=$NEWROOT/boot/initrd.img-${release} \
   --command-line="$cmdline"
 
-kexec -e
+kexec -e --reset-vga
