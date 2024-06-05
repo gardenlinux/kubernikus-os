@@ -11,7 +11,7 @@ Conflicts=shutdown.target
 
 [Service]
 Type=oneshot
-ExecStart=/var/lib/orabos/init.py
+ExecStart=/opt/orabos/init.py
 RemainAfterExit=yes
 TimeoutSec=0
 
