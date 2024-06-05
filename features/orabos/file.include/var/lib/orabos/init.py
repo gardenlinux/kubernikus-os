@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import os
-import subprocess
+import pathlib
+import re
 from yaml import load, dump
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -57,19 +58,22 @@ def setup_ovs():
 
 
 def setup_memory():
-  RESERVED_MEMORY_MB=32768
-  with open('/proc/meminfo') as file:
-    for line in file:
-        if 'MemTotal' in line:
-            mem_total_kb = int(line.split()[1])
-            break
+  cfg = pathlib.Path("/etc/kernel/cmdline.d/50-hugepages.cfg")
+  # Do not overwrite an existing config
+  if cfg.exists():
+    return
 
-  nr_hugepages = ((mem_total_kb // 1024) - RESERVED_MEMORY_MB) // 2
-  with open("/etc/kernel/cmdline.d/60-hugepages.cfg", "wt") as stream:
-    stream.write(f'CMDLINE_LINUX="$CMDLINE_LINUX hugepages={nr_hugepages}"\n')
-  subprocess.run("update-bootloaders", shell=True)
-  subprocess.run(f"sysctl -w vm.nr_hugepages={nr_hugepages}", shell=True)
+  cmdline = pathlib.Path("/proc/cmdline").read_text()
+  m = re.search(r"hugepages=\d+", cmdline)
+  if not m:
+    return
 
+  cfg.write_text(f'CMDLINE_LINUX="$CMDLINE_LINUX {m.group(0)}"\n')
+
+  for entry in pathlib.Path("/efi/loader/entries").glob("*.conf"):
+    old = entry.read_text()
+    new = re.sub(r"^options.*", f"\\g<0> {m.group(0)}", old, flags=re.M)
+    entry.write_text(new)
 
 setup_ovs()
 setup_memory()
