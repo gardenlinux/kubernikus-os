@@ -5,7 +5,7 @@ features:
     - chost
     - vhost
     - _slim
-#    - sssd
+    - sssd
   exclude:
     - _selinux
     - firewall
