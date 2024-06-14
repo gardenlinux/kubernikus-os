@@ -4,6 +4,9 @@ set -Eeuo pipefail
 currentfstab="$(cat)"
 
 if [ -n "$currentfstab" ]; then
-	# delete any predefinition of a var partition
-	sed '/^[^[:space:]]\+[[:space:]]\+\/usr[[:space:]]\+/d' <<< "$currentfstab"
+	# Expand the UEFI partition and do not create a /usr partition (for now)
+	sed \
+	  -e'/type=uefi/ s/$/,size=511M/' \
+	  -e '/^[^[:space:]]\+[[:space:]]\+\/usr[[:space:]]\+/d' \
+	  <<< "$currentfstab"
 fi
