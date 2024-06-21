@@ -3,4 +3,4 @@
 set -eufo pipefail
 
 TIMESTAMP_VERSION=$(date +"%Y%m%d%H%M%S" --date="@$TIMESTAMP")
-sed -iE "s/PRETTY_NAME=\"Garden Linux \(.*\)\"/PRETTY_NAME=\"Garden Linux \1 (${TIMESTAMP_VERSION})\"/gi" /etc/os-release
+sed -i "s/PRETTY_NAME=\"Garden Linux \(.*\)\"/PRETTY_NAME=\"Garden Linux \1 (${TIMESTAMP_VERSION})\"/gi" /etc/os-release
