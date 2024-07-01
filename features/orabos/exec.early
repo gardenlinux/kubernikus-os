@@ -7,20 +7,5 @@ deb http://deb.debian.org/debian stable main
 deb http://deb.debian.org/debian stable-backports main
 EOT
 
-mkdir -p /etc/apt/preferences.d/
-cat >/etc/apt/preferences.d/notgardenlinuxkernel <<-EOT
-Package: linux-image-amd64
-Pin: release a=stable-backports
-Pin-Priority: 700
-
-Package: linux-image-amd64
-Pin: release a=stable
-Pin-Priority: 600
-
-Package: linux-image-amd64
-Pin: release n=today
-Pin-Priority: 1
-EOT
-
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
