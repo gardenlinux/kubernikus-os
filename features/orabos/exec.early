@@ -7,5 +7,11 @@ deb http://deb.debian.org/debian stable main
 deb http://deb.debian.org/debian stable-backports main
 EOT
 
+cat >/etc/apt/preferences.d/debian <<-EOT
+Package: *
+Pin: origin deb.debian.org
+Pin-Priority: 200
+EOT
+
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
