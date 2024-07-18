@@ -68,15 +68,21 @@ def setup_memory():
     return
 
   cmdline = pathlib.Path("/proc/cmdline").read_text()
-  m = re.search(r"hugepages=\d+", cmdline)
-  if not m:
+  m = re.search(r"hugepages=(\d+)", cmdline)
+  hugepages=0
+  if m:
+    hugepages=int(m[1])
+  else:
+    hugepages=int(pathlib.Path("/proc/sys/vm/nr_hugepages").read_text())
+
+  if hugepages<=0:
     return
 
-  cfg.write_text(f'CMDLINE_LINUX="$CMDLINE_LINUX {m.group(0)}"\n')
+  cfg.write_text(f'CMDLINE_LINUX="$CMDLINE_LINUX hugepages={hugepages}"\n')
 
   for entry in pathlib.Path("/efi/loader/entries").glob("*.conf"):
     old = entry.read_text()
-    new = re.sub(r"^options.*", f"\\g<0> {m.group(0)}", old, flags=re.M)
+    new = re.sub(r"^options.*", f"\\g<0> hugepages={hugepages}", old, flags=re.M)
     entry.write_text(new)
 
 setup_ovs()
