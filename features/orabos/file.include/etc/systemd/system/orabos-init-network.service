@@ -11,6 +11,7 @@ Conflicts=shutdown.target
 
 [Service]
 Type=oneshot
+ExecStart=/opt/orabos/init.py
 ExecStart=/usr/sbin/netplan apply
 RemainAfterExit=yes
 TimeoutSec=0
