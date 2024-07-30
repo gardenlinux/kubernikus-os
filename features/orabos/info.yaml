@@ -5,3 +5,4 @@ features:
     - gardener
     - vhost
     - _slim
+    - sssd
