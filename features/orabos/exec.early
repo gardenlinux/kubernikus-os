@@ -1,18 +1,5 @@
 #!/usr/bin/env bash
 
-mkdir -p /etc/apt/sources.list.d/
-# Tried it with "pkg.include" and placing this under "file.include", but that didn't work
-cat >/etc/apt/sources.list.d/debian.list <<-EOT
-deb http://deb.debian.org/debian stable main
-deb http://deb.debian.org/debian stable-backports main
-EOT
-
-cat >/etc/apt/preferences.d/debian <<-EOT
-Package: *
-Pin: origin deb.debian.org
-Pin-Priority: 200
-EOT
-
 function pull_from_today() {
   cat >/etc/apt/preferences.d/today <<-EOT
 Package: $@
@@ -32,6 +19,3 @@ case $BUILDER_VERSION in
     pull_from_today ignition
     ;;
 esac
-
-export DEBIAN_FRONTEND=noninteractive
-apt-get update
