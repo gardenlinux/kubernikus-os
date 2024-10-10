@@ -54,7 +54,7 @@ def setup_ovs():
         "openvswitch": {},
     }
 
-    for key in ["macaddress", "addresses", "routes", "dhcp4"]:
+    for key in ["addresses", "routes", "dhcp4"]:
         val = primary.pop(key, None)
         if val:
             br_ex[key] = val
