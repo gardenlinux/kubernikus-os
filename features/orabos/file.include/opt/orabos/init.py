@@ -61,6 +61,8 @@ def setup_ovs():
 
     if not br_ex.get("dhcp4", None):
         br_ex["nameservers"] = DEFAULT_NAMESERVERS
+
+    primary["dhcp4"] = False
     bridges["br-ex"] = br_ex
 
     name, ip, vlan_id, aggregates = _get_netbox_config()

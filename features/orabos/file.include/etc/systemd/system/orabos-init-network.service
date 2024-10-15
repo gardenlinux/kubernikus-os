@@ -6,7 +6,7 @@ Wants=ovs-vswitchd.service
 After=ovsdb-server.service
 After=ovs-vswitchd.service
 PartOf=network.target
-Before=cloud-init.service
+Before=cloud-init-network.service
 Conflicts=shutdown.target
 
 [Service]
@@ -20,4 +20,4 @@ TimeoutSec=0
 StandardOutput=journal+console
 
 [Install]
-WantedBy=cloud-init.service
+WantedBy=cloud-init-network.service
