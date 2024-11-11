@@ -27,8 +27,10 @@ if [ ${hugepages:-0} -gt 0 ]; then
   exit 0
 fi
 
-non_hugepages_mb=$(getarg rd.non_hugepages_mb=) || non_hugepages_mb=32768
-hugepages=$((($mem_total_mb - $non_hugepages_mb) / $hugepagesize_mb))
+
+non_hugepages_pm=$(getarg rd.non_hugepages_pm=) || non_hugepages_pm=50
+non_hugepages_mb=$(( ($mem_total_mb * $non_hugepages_pm) / 1000 ))
+hugepages=$(( ($mem_total_mb - $non_hugepages_mb ) / $hugepagesize_mb ))
 
 if [ $hugepages -le 0 ]; then
   exit 0
