@@ -185,13 +185,13 @@ jobs:
             # "metal-vhost",
           ]
         modifier: ["${{ inputs.default_modifier }}"]
-        include:
-          - target: container
-            arch: amd64
-            modifier: ""
-          - target: container
-            arch: arm64
-            modifier: ""
+        #include:
+        #  - target: container
+        #    arch: amd64
+        #    modifier: ""
+        #  - target: container
+        #    arch: arm64
+        #    modifier: ""
     steps:
       # - uses: gardenlinux/workflow-telemetry-action@c75b594f552d305ffd5f9074637137bc343ba35e # pin@v2
       #   with:
@@ -265,6 +265,7 @@ jobs:
   bare_flavors:
     needs: [version, base]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-latest-arm' || 'ubuntu-latest' }}
+    if: false
     defaults:
       run:
         shell: bash
