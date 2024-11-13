@@ -72,7 +72,7 @@ jobs:
           for f in secureboot.{{pk,null.pk,kek,db}.auth,db.{crt,arn}}; do
             ln -sr "cert/gardenlinux-$f" "cert/$f"
           done
-      - uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # pin@v3
+      - uses: actions/cache/save@6849a6489940f00c2f30c0fb92c6274307ccb58a # pin@v3
         with:
           path: cert
           key: cert-${{ github.run_id }}
@@ -107,7 +107,7 @@ jobs:
           git update-index --assume-unchanged VERSION
       - name: build base-${{ matrix.arch }}
         run: ./build base-${{ matrix.arch }}
-      - uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # pin@v3
+      - uses: actions/cache/save@6849a6489940f00c2f30c0fb92c6274307ccb58a # pin@v3
         with:
           path: .build
           key: base-${{ matrix.arch }}-${{ github.run_id }}
@@ -143,7 +143,7 @@ jobs:
           podman build --squash --tag test --build-arg base="$OCI_IMAGE_TAG" tests
           podman save --format oci-archive test > test.oci
       - name: upload test container
-        uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # pin@v3
+        uses: actions/cache/save@6849a6489940f00c2f30c0fb92c6274307ccb58a # pin@v3
         with:
           path: test.oci
           key: test_container:${{ matrix.arch }}-${{ github.run_id }}
@@ -211,7 +211,7 @@ jobs:
           bin/garden-version "${{ needs.version.outputs.version }}" | tee VERSION
           git update-index --assume-unchanged VERSION
       - name: load cert cache
-        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # pin@v3
+        uses: actions/cache/restore@6849a6489940f00c2f30c0fb92c6274307ccb58a # pin@v3
         with:
           path: cert
           key: cert-${{ github.run_id }}
@@ -227,13 +227,13 @@ jobs:
           role-session-name: ${{ secrets.aws_oidc_session }}
           aws-region: ${{ secrets.aws_region }}
       - name: load bootstrap stage cache
-        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # pin@v3
+        uses: actions/cache/restore@6849a6489940f00c2f30c0fb92c6274307ccb58a # pin@v3
         with:
           path: .build
           key: base-${{ matrix.arch }}-${{ github.run_id }}
           fail-on-cache-miss: true
       - name: download test container cache
-        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # pin@v3
+        uses: actions/cache/restore@6849a6489940f00c2f30c0fb92c6274307ccb58a # pin@v3
         with:
           path: test.oci
           key: test_container:${{ matrix.arch }}-${{ github.run_id }}
@@ -248,19 +248,30 @@ jobs:
           find .build -exec touch -d "@$t" {} +
       - name: build
         run: ./build ${{ inputs.use_kms && '--kms' || '' }} ${{ matrix.target }}${{ matrix.modifier }}-${{ matrix.arch }}
-      - name: test
-        run: ./test --container-image test ${{ matrix.target }}${{ matrix.modifier }}-${{ matrix.arch }}
-      - uses: pmeier/pytest-results-action@fc6576eced1f411ea48ab10e917d9cfce2960e29 # pin@v0.7.1
-        if: always()
-        with:
-          path: tests/test.xml
       - name: get cname
         run: |
           cname=$(basename "$(realpath ".build/${{ matrix.target }}${{ matrix.modifier }}-${{ matrix.arch }}")" .artifacts)
           echo "cname=$cname" | tee -a "$GITHUB_ENV"
-      - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # pin@v4.4.0
+      # ./test writes ${{ env.cname }}.chroot.test.log and puts it into .build/${{ env.cname }}.artifacts
+      - name: test
+        run: |
+          ./test --container-image test ${{ matrix.target }}${{ matrix.modifier }}-${{ matrix.arch }}
+      # chroot.test.xml is written in the entrypoint tests/init
+      - name: rename test results
+        if: always()
+        run: |
+          mv tests/chroot.test.xml .build/${{ env.cname }}.chroot.test.xml
+      - uses: pmeier/pytest-results-action@fc6576eced1f411ea48ab10e917d9cfce2960e29 # pin@v0.7.1
+        if: always()
         with:
-          name: "${{ env.cname }}"
+          path: ".build/${{ env.cname }}.chroot.test.xml"
+      - name: add chroot.test.xml to build artifacts
+        run: echo "${{ env.cname }}.chroot.test.xml" >> ".build/${{ env.cname }}.artifacts"
+      - name: pack build artifacts for upload
+        run: tar -cSzvf "${{ env.cname }}.tar.gz" -C .build -T ".build/${{ env.cname }}.artifacts"
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4.4.3
+        with:
+          name: "build-${{ env.cname }}"
           path: "${{ env.cname }}.tar.gz"
   bare_flavors:
     needs: [version, base]
@@ -293,7 +304,7 @@ jobs:
           bin/garden-version "${{ needs.version.outputs.version }}" | tee VERSION
           git update-index --assume-unchanged VERSION
       - name: load bootstrap stage cache
-        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # pin@v3
+        uses: actions/cache/restore@6849a6489940f00c2f30c0fb92c6274307ccb58a # pin@v3
         with:
           path: .build
           key: base-${{ matrix.arch }}-${{ github.run_id }}
@@ -310,7 +321,7 @@ jobs:
           cd bare_flavors/${{ matrix.config }}/test
           podman build -t test --build-arg image="$image" .
           podman run --rm test
-      - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # pin@v4.4.0
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4.4.3
         with:
-          name: "bare-${{ matrix.config }}-${{ matrix.arch }}"
+          name: "build-bare-${{ matrix.config }}-${{ matrix.arch }}"
           path: ".build/bare_flavors/${{ matrix.config }}-${{ matrix.arch }}.oci"
