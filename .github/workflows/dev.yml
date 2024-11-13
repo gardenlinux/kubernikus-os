@@ -1,0 +1,27 @@
+name: dev
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '**/README.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**/README.md'
+jobs:
+  set_version:
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.version.outputs.VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: use VERSION file to support dev build on rel-branch
+        id: version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+  build:
+    needs: [ set_version ]
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ needs.set_version.outputs.VERSION }}
