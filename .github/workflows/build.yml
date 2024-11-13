@@ -34,6 +34,8 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pin@v4.1.1
+        with:
+          submodules: "recursive"
       - name: resolve version "${{ inputs.version }}"
         id: version
         run: echo version="$(bin/garden-version "${{ inputs.version }}")" | tee -a "$GITHUB_OUTPUT"
@@ -52,9 +54,12 @@ jobs:
       #     proc_trace_chart_max_count: 50
       #     comment_on_pr: false
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pin@v4.1.1
+        with:
+          submodules: "recursive"
       - uses: ./.github/actions/setup
       - name: set VERSION=${{ needs.version.outputs.version }}
         run: |
+          [ -d gardenlinux ] && cd gardenlinux
           bin/garden-version "${{ needs.version.outputs.version }}" | tee VERSION
           git update-index --assume-unchanged VERSION
       - name: build certificates
@@ -81,7 +86,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [ amd64, arm64 ]
+        arch: [amd64, arm64]
     steps:
       # - uses: gardenlinux/workflow-telemetry-action@c75b594f552d305ffd5f9074637137bc343ba35e # pin@v2
       #   with:
@@ -90,11 +95,14 @@ jobs:
       #     proc_trace_chart_max_count: 50
       #     comment_on_pr: false
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pin@v4.1.1
+        with:
+          submodules: "recursive"
       - uses: ./.github/actions/setup
         with:
           arch: "${{ matrix.arch }}"
       - name: set VERSION=${{ needs.version.outputs.version }}
         run: |
+          [ -d gardenlinux ] && cd gardenlinux
           bin/garden-version "${{ needs.version.outputs.version }}" | tee VERSION
           git update-index --assume-unchanged VERSION
       - name: build base-${{ matrix.arch }}
@@ -112,7 +120,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [ amd64, arm64 ]
+        arch: [amd64, arm64]
     steps:
       # - uses: gardenlinux/workflow-telemetry-action@c75b594f552d305ffd5f9074637137bc343ba35e # pin@v2
       #   with:
@@ -121,8 +129,10 @@ jobs:
       #     proc_trace_chart_max_count: 50
       #     comment_on_pr: false
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pin@v4.1.1
+        with:
+          submodules: "recursive"
       - uses: ./.github/actions/setup
-        with: 
+        with:
           arch: "${{ matrix.arch }}"
       - name: build test container
         run: |
@@ -138,7 +148,7 @@ jobs:
           path: test.oci
           key: test_container:${{ matrix.arch }}-${{ github.run_id }}
   images:
-    needs: [ version, cert, base, test_container ]
+    needs: [version, cert, base, test_container]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-latest-arm' || 'ubuntu-latest' }}
     defaults:
       run:
@@ -149,9 +159,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [ amd64, arm64 ]
-        target: [ kvm, "kvm_trustedboot", "kvm_trustedboot_tpm2", metal, "metal_trustedboot", "metal_trustedboot_tpm2", gcp, gdch, aws, "aws_trustedboot", "aws_trustedboot_tpm2", azure, ali, openstack, openstackbaremetal, vmware, "metal_pxe", firecracker, "metal-vhost" ]
-        modifier: [ "${{ inputs.default_modifier }}" ]
+        arch: [amd64, arm64]
+        target: [
+            openstackbaremetal-metal3-orabos,
+            openstackbaremetal-orabos,
+            vmware-orabos,
+            # kvm,
+            # "kvm_trustedboot",
+            # "kvm_trustedboot_tpm2",
+            # metal,
+            # "metal_trustedboot",
+            # "metal_trustedboot_tpm2",
+            # gcp,
+            # gdch,
+            # aws,
+            # "aws_trustedboot",
+            # "aws_trustedboot_tpm2",
+            # azure,
+            # ali,
+            # openstack,
+            # openstackbaremetal,
+            # vmware,
+            # "metal_pxe",
+            # firecracker,
+            # "metal-vhost",
+          ]
+        modifier: ["${{ inputs.default_modifier }}"]
         include:
           - target: container
             arch: amd64
@@ -167,11 +200,14 @@ jobs:
       #     proc_trace_chart_max_count: 50
       #     comment_on_pr: false
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pin@v4.1.1
+        with:
+          submodules: "recursive"
       - uses: ./.github/actions/setup
-        with: 
+        with:
           arch: "${{ matrix.arch }}"
       - name: set VERSION=${{ needs.version.outputs.version }}
         run: |
+          [ -d gardenlinux ] && cd gardenlinux
           bin/garden-version "${{ needs.version.outputs.version }}" | tee VERSION
           git update-index --assume-unchanged VERSION
       - name: load cert cache
@@ -227,7 +263,7 @@ jobs:
           name: "${{ env.cname }}"
           path: "${{ env.cname }}.tar.gz"
   bare_flavors:
-    needs: [ version, base ]
+    needs: [version, base]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-latest-arm' || 'ubuntu-latest' }}
     defaults:
       run:
@@ -235,8 +271,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [ amd64, arm64 ]
-        config: [ libc, python, nodejs, sapmachine ]
+        arch: [amd64, arm64]
+        config: [libc, python, nodejs, sapmachine]
     steps:
       # - uses: gardenlinux/workflow-telemetry-action@c75b594f552d305ffd5f9074637137bc343ba35e # pin@v2
       #   with:
@@ -245,11 +281,14 @@ jobs:
       #     proc_trace_chart_max_count: 50
       #     comment_on_pr: false
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # pin@v4.1.1
+        with:
+          submodules: "recursive"
       - uses: ./.github/actions/setup
         with:
           arch: "${{ matrix.arch }}"
       - name: set VERSION=${{ needs.version.outputs.version }}
         run: |
+          [ -d gardenlinux ] && cd gardenlinux
           bin/garden-version "${{ needs.version.outputs.version }}" | tee VERSION
           git update-index --assume-unchanged VERSION
       - name: load bootstrap stage cache
