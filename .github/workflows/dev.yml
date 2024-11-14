@@ -27,3 +27,4 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       version: ${{ needs.set_version.outputs.VERSION }}
+      arch: '["amd64"]'

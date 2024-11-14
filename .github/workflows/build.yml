@@ -11,6 +11,9 @@ on:
       use_kms:
         type: boolean
         default: false
+      arch:
+        type: string
+        default: '["amd64", "arm64"]'
     secrets:
       secureboot_db_kms_arn:
         required: false
@@ -86,7 +89,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [amd64, arm64]
+        arch: ${{ fromJSON(inputs.arch) }}
     steps:
       # - uses: gardenlinux/workflow-telemetry-action@c75b594f552d305ffd5f9074637137bc343ba35e # pin@v2
       #   with:
@@ -120,7 +123,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [amd64, arm64]
+        arch: ${{ fromJSON(inputs.arch) }}
     steps:
       # - uses: gardenlinux/workflow-telemetry-action@c75b594f552d305ffd5f9074637137bc343ba35e # pin@v2
       #   with:
@@ -159,7 +162,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [amd64, arm64]
+        arch: ${{ fromJSON(inputs.arch) }}
         target: [
             openstackbaremetal-metal3-orabos,
             openstackbaremetal-orabos,
@@ -283,7 +286,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [amd64, arm64]
+        arch: ${{ fromJSON(inputs.arch) }}
         config: [libc, python, nodejs, sapmachine]
     steps:
       # - uses: gardenlinux/workflow-telemetry-action@c75b594f552d305ffd5f9074637137bc343ba35e # pin@v2
