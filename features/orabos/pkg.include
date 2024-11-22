@@ -1,0 +1,7 @@
+cloud-init
+multipath-tools
+open-iscsi
+openvswitch-switch
+conntrack
+parted
+systemd-container

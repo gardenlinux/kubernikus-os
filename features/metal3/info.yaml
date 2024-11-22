@@ -1,0 +1,6 @@
+description: "features needed for metal3 to work"
+type: element
+features:
+  include:
+    - _ignite
+    - sssd
